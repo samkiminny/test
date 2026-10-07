@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <title>암호를 풀어보자! — 수학 미션</title>
+  <style>
+    :root {
+      --bg: #070b16;
+      --panel: rgba(18, 27, 48, 0.86);
+      --panel-strong: #14213b;
+      --line: rgba(255, 255, 255, 0.11);
+      --text: #f7f9ff;
+      --muted: #9ca9c4;
+      --mint: #51e6b3;
+      --mint-dark: #1db98a;
+      --violet: #9c7bff;
+      --orange: #ffb85c;
+      --danger: #ff6b86;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(81, 230, 179, 0.14), transparent 29%),
+        radial-gradient(circle at 85% 85%, rgba(156, 123, 255, 0.18), transparent 32%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.24;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 54px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 34px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(81, 230, 179, .38);
+      border-radius: 13px;
+      color: var(--mint);
+      background: rgba(81, 230, 179, .09);
+      box-shadow: inset 0 0 20px rgba(81, 230, 179, .08);
+    }
+
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,.035);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 12px var(--mint);
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,.035);
+      transition: .2s ease;
+    }
+
+    .icon-button:hover { color: white; border-color: rgba(255,255,255,.3); transform: translateY(-1px); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.45fr .55fr;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .hero-copy, .hero-card {
+      position: relative;
+      min-height: 250px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy { padding: 42px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--mint); }
+
+    h1 {
+      max-width: 687px;
+      margin: 0;
+      font-size: clamp(34px, 5vw, 59px);
+      line-height: 1.03;
+      letter-spacing: -.055em;
+    }
+
+    h1 span { color: var(--mint); }
+
+    .hero-copy p {
+      max-width: 590px;
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 30px;
+      background:
+        linear-gradient(145deg, rgba(156,123,255,.2), transparent 62%),
+        var(--panel);
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      right: -75px;
+      bottom: -86px;
+      border: 1px solid rgba(156,123,255,.3);
+      border-radius: 50%;
+      box-shadow: 0 0 0 24px rgba(156,123,255,.04), 0 0 0 48px rgba(156,123,255,.025);
+    }
+
+    .card-label { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .image-frame { position: relative; z-index: 1; width: 100%; aspect-ratio: 1.4; margin: 18px 0; overflow: hidden; border-radius: 16px; background: #080d1d; }
+    .image-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .image-caption { position: relative; z-index: 1; font-size: 13px; line-height: 1.55; color: var(--muted); }
+
+    .progress-wrap {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 9px;
+      margin: 0 0 22px;
+    }
+
+    .progress-step {
+      height: 7px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.08);
+      transition: .35s ease;
+    }
+
+    .progress-step.active { background: var(--mint); box-shadow: 0 0 13px rgba(81,230,179,.45); }
+    .progress-step.done { background: #76a0ff; }
+
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; }
+
+    .game-card, .side-card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .game-card { min-height: 475px; padding: 34px; }
+    .side-card { padding: 26px; height: fit-content; }
+
+    .game-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .stage-badge { padding: 8px 12px; border-radius: 10px; color: var(--mint); background: rgba(81,230,179,.09); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+    .question-count { color: var(--muted); font-size: 13px; font-weight: 700; }
+
+    .question-area { display: grid; place-items: center; min-height: 245px; text-align: center; }
+
+    .question-label { margin-bottom: 10px; color: var(--muted); font-size: 13px; font-weight: 700; }
+    .expression {
+      margin: 0;
+      font-size: clamp(48px, 8vw, 92px);
+      font-weight: 800;
+      letter-spacing: -.06em;
+      line-height: 1;
+    }
+
+    .expression .symbol { color: var(--violet); }
+    .expression .answer-placeholder { color: #4f5d79; }
+
+    .answer-form { display: flex; gap: 10px; margin-top: 14px; }
+
+    .answer-input {
+      width: 100%;
+      min-width: 0;
+      padding: 17px 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: none;
+      color: white;
+      background: rgba(3, 7, 17, .48);
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      transition: .2s ease;
+    }
+
+    .answer-input:focus { border-color: rgba(81,230,179,.65); box-shadow: 0 0 0 4px rgba(81,230,179,.08); }
+    .answer-input.invalid { border-color: var(--danger); animation: shake .35s ease; }
+
+    .primary-button, .secondary-button {
+      min-height: 52px;
+      padding: 0 24px;
+      border-radius: 14px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    .primary-button { border: 0; color: #07170f; background: var(--mint); box-shadow: 0 10px 26px rgba(81,230,179,.16); }
+    .primary-button:hover { background: #70f3c8; transform: translateY(-2px); }
+    .primary-button:disabled { opacity: .48; cursor: not-allowed; transform: none; }
+
+    .secondary-button { border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,.05); }
+    .secondary-button:hover { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.08); }
+
+    .feed { min-height: 24px; margin-top: 14px; color: var(--muted); font-size: 14px; font-weight: 700; text-align: center; }
+    .feed.correct { color: var(--mint); }
+    .feed.wrong { color: var(--danger); }
+
+    .level-list { display: grid; gap: 10px; margin: 24px 0; }
+    .level-item { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid transparent; border-radius: 13px; color: var(--muted); }
+    .level-item.current { color: var(--text); border-color: rgba(81,230,179,.33); background: rgba(81,230,179,.07); }
+    .level-item.done { color: #c9d1e4; }
+    .level-number { display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 auto; border-radius: 9px; background: rgba(255,255,255,.07); font-size: 12px; font-weight: 800; }
+    .level-item.current .level-number { color: #07170f; background: var(--mint); }
+    .level-item.done .level-number { color: white; background: var(--violet); }
+    .level-name { font-size: 13px; font-weight: 750; }
+    .level-tag { margin-left: auto; font-size: 10px; color: var(--muted); }
+
+    .side-note { margin-top: 22px; padding: 17px; border: 1px solid rgba(156,123,255,.2); border-radius: 15px; color: var(--muted); background: rgba(156,123,255,.07); font-size: 12px; line-height: 1.6; }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn .35s ease; }
+
+    .unlock-card {
+      position: relative;
+      overflow: hidden;
+      padding: 48px;
+      border: 1px solid rgba(81,230,179,.24);
+      border-radius: 30px;
+      background: linear-gradient(145deg, rgba(81,230,179,.1), rgba(18,27,48,.92));
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .unlock-icon { display: grid; place-items: center; width: 88px; height: 88px; margin: 0 auto 24px; border-radius: 26px; color: #07170f; background: var(--mint); box-shadow: 0 0 45px rgba(81,230,179,.24); font-size: 38px; }
+    .unlock-card h2 { margin: 0; font-size: clamp(31px, 5vw, 48px); letter-spacing: -.04em; }
+    .unlock-card p { max-width: 560px; margin: 15px auto 30px; color: var(--muted); line-height: 1.7; }
+
+    .code-display {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 28px 0;
+    }
+
+    .code-chip { width: 70px; height: 70px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(0,0,0,.22); font-size: 24px; font-weight: 900; letter-spacing: .08em; }
+
+    .final-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+    .footer-note { margin-top: 24px; color: #68758f; font-size: 12px; text-align: center; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-card { min-height: auto; }
+      .image-frame { max-height: 300px; }
+      .game-layout { grid-template-columns: 1fr; }
+      .side-card { order: -1; }
+      .level-list { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      .app-shell { width: min(100% - 20px, 1120px); padding-top: 16px; }
+      .topbar { margin-bottom: 20px; }
+      .status-pill { display: none; }
+      .hero-copy { padding: 28px 24px; }
+      .hero-card { padding: 21px; }
+      .game-card { padding: 24px 20px; min-height: 440px; }
+      .level-list { grid-template-columns: 1fr; }
+      .answer-form { flex-direction: column; }
+      .primary-button { width: 100%; }
+      .code-display { gap: 5px; }
+      .code-chip { width: 50px; height: 58px; font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">⌁</div>
+        <span>Math Cipher</span>
+      </div>
+      <div class="top-actions">
+        <div class="status-pill"><span class="status-dot"></span><span id="statusText">대기 중</span></div>
+        <button class="icon-button" id="resetButton" type="button" aria-label="게임 초기화">↻</button>
+      </div>
+    </header>
+
+    <section class="hero screen active" id="welcomeScreen">
+      <div class="hero-copy">
+        <div class="eyebrow">암호 해제 미션</div>
+        <h1>숫자를 풀면<br><span>암호가 열린다.</span></h1>
+        <p>일의자리부터 백의자리까지 수학을 차근차근 풀어보세요. 각 단계의 정답을 맞히면 다음 단계로 진행합니다.</p>
+      </div>
+      <aside class="hero-card">
+        <div class="card-label">첨부 암호 이미지</div>
+        <div class="image-frame">
+          <img src="ab3c7786-c4ef-4f4b-bbe8-bb95acd31b48.png" alt="암호 이미지 첨부 파일">
+        </div>
+        <div class="image-caption">이미지 속 암호를 확인하고, 문제를 풀어 해금 코드를 찾아보세요.</div>
+      </aside>
+    </section>
+
+    <section class="screen" id="gameScreen">
+      <div class="progress-wrap" id="progressWrap" aria-label="진행도"></div>
+      <div class="game-layout">
+        <article class="game-card">
+          <div class="game-head">
+            <span class="stage-badge" id="stageBadge">단계 1 / 6</span>
+            <span class="question-count" id="questionCount">문제 1 / 5</span>
+          </div>
+          <div class="question-area">
+            <div>
+              <div class="question-label" id="questionLabel">일의자리 덧셈</div>
+              <p class="expression" id="expression">3 <span class="symbol">+</span> 4 <span class="answer-placeholder">= ?</span></p>
+              <form class="answer-form" id="answerForm">
+                <input class="answer-input" id="answerInput" type="number" inputmode="numeric" autocomplete="off" aria-label="정답 입력" placeholder="답을 입력하세요">
+                <button class="primary-button" type="submit">확인</button>
+              </form>
+              <div class="feed" id="feed" aria-live="polite">정답을 입력해 주세요.</div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="side-card">
+          <div class="card-label">학습 경로</div>
+          <div class="level-list" id="levelList"></div>
+          <div class="side-note">정답을 맞히면 <strong>단계가 통과</strong>합니다. 모든 6단계를 통과해야 해금 코드가 생성됩니다.</div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="unlockScreen">
+      <div class="unlock-card">
+        <div class="unlock-icon">✓</div>
+        <h2>암호가 해금되었습니다!</h2>
+        <p>모든 학습 단계에서 정답을 맞췄습니다. 생성된 암호 코드는 아래에서 확인할 수 있습니다.</p>
+        <div class="code-display" id="codeDisplay" aria-label="해금 암호"></div>
+        <div class="final-actions">
+          <button class="primary-button" id="playAgainButton" type="button">다시 풀기</button>
+          <button class="secondary-button" id="restartButton" type="button">처음으로</button>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note">수학은 반복 학습으로 mastery가 생깁니다. 입력한 답은 화면에 남기지 않습니다.</p>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const stages = [
+        { name: '일의자리 덧셈', short: '일의 + 일의', count: 5, max: 9, operation: '+', place: '일의자리', mode: 'addition' },
+        { name: '일의자리 뺄셈', short: '일의 − 일의', count: 5, max: 9, operation: '−', place: '일의자리', mode: 'subtraction' },
+        { name: '십의자리 덧셈', short: '십의 + 십의', count: 5, max: 99, operation: '+', place: '십의자리', mode: 'addition' },
+        { name: '십의자리 뺄셈', short: '십의 − 십의', count: 5, max: 99, operation: '−', place: '십의자리', mode: 'subtraction' },
+        { name: '백의자리 덧셈', short: '백의 + 백의', count: 5, max: 999, operation: '+', place: '백의자리', mode: 'addition' },
+        { name: '백의자리 뺄셈', short: '백의 − 백의', count: 5, max: 999, operation: '−', place: '백의자리', mode: 'subtraction' }
+      ];
+
+      const screens = {
+        welcome: document.getElementById('welcomeScreen'),
+        game: document.getElementById('gameScreen'),
+        unlock: document.getElementById('unlockScreen')
+      };
+
+      const stageBadge = document.getElementById('stageBadge');
+      const questionCount = document.getElementById('questionCount');
+      const questionLabel = document.getElementById('questionLabel');
+      const expression = document.getElementById('expression');
+      const answerForm = document.getElementById('answerForm');
+      const answerInput = document.getElementById('answerInput');
+      const feed = document.getElementById('feed');
+      const levelList = document.getElementById('levelList');
+      const progressWrap = document.getElementById('progressWrap');
+      const statusText = document.getElementById('statusText');
+      const codeDisplay = document.getElementById('codeDisplay');
+
+      let currentStage = 0;
+      let currentProblem = 0;
+      let score = 0;
+      let completedStages = new Set();
+      let activeQuestion = null;
+      let lockCode = [];
+
+      const saved = JSON.parse(localStorage.getItem('mathCipherProgress') || '{}');
+      completedStages = new Set(saved.completedStages || []);
+      currentStage = Math.min(saved.currentStage || 0, stages.length - 1);
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function createQuestion(stage) {
+        const digit = stage.place === '일의자리' ? 1 : stage.place === '십의자리' ? 2 : 3;
+        const placeValue = 10 ** (digit - 1);
+        let a = randomInt(0, stage.max);
+        let b = randomInt(0, stage.max);
+
+        if (stage.mode === 'subtraction') {
+          if (a < b) [a, b] = [b, a];
+          while (a - b <= 0) b = randomInt(0, a);
+        }
+
+        const answer = stage.mode === 'addition' ? a + b : a - b;
+        return { a, b, answer };
+      }
+
+      function renderLevelList() {
+        levelList.innerHTML = stages.map((stage, index) => {
+          const isDone = completedStages.has(index);
+          const isCurrent = index === currentStage && !isDone;
+          return `<div class="level-item ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}">
+            <span class="level-number">${isDone ? '✓' : index + 1}</span>
+            <span class="level-name">${stage.name}</span>
+            <span class="level-tag">${stage.short}</span>
+          </div>`;
+        }).join('');
+      }
+
+      function renderProgress() {
+        progressWrap.innerHTML = stages.map((_, index) => `<div class="progress-step ${completedStages.has(index) ? 'done' : ''} ${index === currentStage && !completedStages.has(index) ? 'active' : ''}"></div>`).join('');
+      }
+
+      function startStage(index) {
+        currentStage = index;
+        currentProblem = 0;
+        score = 0;
+        activeQuestion = null;
+        answerInput.value = '';
+        answerInput.classList.remove('invalid');
+        const stage = stages[index];
+        stageBadge.textContent = `단계 ${index + 1} / ${stages.length}`;
+        questionCount.textContent = `문제 ${currentProblem + 1} / ${stage.count}`;
+        questionLabel.textContent = stage.name;
+        statusText.textContent = stage.short;
+        feed.textContent = '정답을 입력해 주세요.';
+        feed.className = 'feed';
+        answerInput.disabled = false;
+        answerInput.focus();
+        renderLevelList();
+        renderProgress();
+        showQuestion();
+      }
+
+      function showQuestion() {
+        const stage = stages[currentStage];
+        activeQuestion = createQuestion(stage);
+        expression.innerHTML = `${activeQuestion.a} <span class="symbol">${stage.operation}</span> ${activeQuestion.b} <span class="answer-placeholder">= ?</span>`;
+        questionCount.textContent = `문제 ${currentProblem + 1} / ${stage.count}`;
+        answerInput.value = '';
+        answerInput.disabled = false;
+        answerInput.classList.remove('invalid');
+        feed.textContent = '정답을 입력해 주세요.';
+        feed.className = 'feed';
+        answerInput.focus();
+      }
+
+      function saveProgress() {
+        localStorage.setItem('mathCipherProgress', JSON.stringify({
+          currentStage,
+          completedStages: [...completedStages]
+        }));
+      }
+
+      function finishStage() {
+        completedStages.add(currentStage);
+        saveProgress();
+        renderLevelList();
+        renderProgress();
+
+        if (currentStage < stages.length - 1) {
+          statusText.textContent = '단계 통과!';
+          feed.textContent = '단계 통과! 다음 단계로 진행합니다.';
+          feed.className = 'feed correct';
+          answerInput.disabled = true;
+          setTimeout(() => startStage(currentStage + 1), 850);
+          return;
+        }
+
+        const generatedCode = stages.map((stage, index) => {
+          return completedStages.has(index) ? String(index + 1).padStart(2, '0') : '00';
+        }).join('');
+        lockCode = generatedCode;
+        codeDisplay.innerHTML = lockCode.split('').map(digit => `<span class="code-chip">${digit}</span>`).join('');
+        screens.game.classList.remove('active');
+        screens.unlock.classList.add('active');
+        statusText.textContent = '해금 완료';
+      }
+
+      answerForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const answer = Number(answerInput.value.trim());
+        if (!Number.isInteger(answer)) {
+          answerInput.classList.add('invalid');
+          feed.textContent = '정수만 입력할 수 있어요.';
+          feed.className = 'feed wrong';
+          answerInput.focus();
+          return;
+        }
+
+        if (answer === activeQuestion.answer) {
+          score += 1;
+          currentProblem += 1;
+          feed.textContent = '정답입니다! ✓';
+          feed.className = 'feed correct';
+          answerInput.disabled = true;
+
+          if (currentProblem >= stages[currentStage].count) {
+            setTimeout(finishStage, 650);
+          } else {
+            setTimeout(showQuestion, 650);
+          }
+        } else {
+          answerInput.classList.add('invalid');
+          feed.textContent = `틀렸어요. 정답은 ${activeQuestion.answer}입니다.`;
+          feed.className = 'feed wrong';
+          setTimeout(() => answerInput.classList.remove('invalid'), 700);
+          answerInput.focus();
+        }
+      });
+
+      document.getElementById('resetButton').addEventListener('click', () => {
+        completedStages.clear();
+        currentStage = 0;
+        localStorage.removeItem('mathCipherProgress');
+        screens.welcome.classList.add('active');
+        screens.game.classList.remove('active');
+        screens.unlock.classList.remove('active');
+        statusText.textContent = '대기 중';
+      });
+
+      document.getElementById('playAgainButton').addEventListener('click', () => {
+        completedStages.clear();
+        currentStage = 0;
+        localStorage.removeItem('mathCipherProgress');
+        screens.unlock.classList.remove('active');
+        screens.game.classList.add('active');
+        startStage(0);
+      });
+
+      document.getElementById('restartButton').addEventListener('click', () => {
+        screens.unlock.classList.remove('active');
+        screens.welcome.classList.add('active');
+        completedStages.clear();
+        currentStage = 0;
+        localStorage.removeItem('mathCipherProgress');
+      });
+
+      document.querySelector('body').addEventListener('click', event => {
+        if (event.target.id === 'welcomeScreen') {
+          screens.welcome.classList.add('active');
+        }
+      });
+
+      if (saved.currentStage && saved.currentStage > 0 && !completedStages.has(saved.currentStage - 1)) {
+        currentStage = 0;
+      }
+
+      renderLevelList();
+      renderProgress();
+      if (completedStages.size === stages.length) {
+        const generatedCode = stages.map((_, index) => String(index + 1).padStart(2, '0')).join('');
+        lockCode = generatedCode;
+        codeDisplay.innerHTML = lockCode.split('').map(digit => `<span class="code-chip">${digit}</span>`).join('');
+        screens.welcome.classList.remove('active');
+        screens.unlock.classList.add('active');
+      }
+
+      const startButton = document.createElement('button');
+      startButton.type = 'button';
+      startButton.className = 'primary-button';
+      startButton.style.marginTop = '26px';
+      startButton.textContent = '미션 시작하기 →';
+      startButton.addEventListener('click', () => {
+        screens.welcome.classList.remove('active');
+        screens.game.classList.add('active');
+        startStage(currentStage);
+      });
+      document.querySelector('.hero-copy').appendChild(startButton);
+    })();
+  </script>
+</body>
+</html>
